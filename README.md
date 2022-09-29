@@ -15,7 +15,7 @@ Cotempla carrinho, cart, arrow functions, encapsular funcionalidades, modulariza
 
 ## Você pode testar o projeto, acessando o link abaixo
 
-https://joserenatofelix.github.io/Calculadora-IMC/
+https://joserenatofelix.github.io/Pizzaria/
 
 ## Autor
  José Renato Felix da Silva
