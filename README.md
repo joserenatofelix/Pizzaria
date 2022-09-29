@@ -12,6 +12,8 @@ Cotempla carrinho, cart, arrow functions, encapsular funcionalidades, modulariza
 
 ## Apresentação
 
+https://user-images.githubusercontent.com/93296913/193107872-e3ec9564-b5a7-4902-881b-ffc77803468e.mp4
+
 
 ## Você pode testar o projeto, acessando o link abaixo
 
