@@ -6,9 +6,9 @@ Cotempla carrinho, cart, arrow functions, encapsular funcionalidades, modulariza
 
 ## Tecnologias
 
-- HTML5</br>
-- CSS3</br>
-- JavaScript
+-> HTML5</br>
+-> CSS3</br>
+-> JavaScript
 
 ## Apresentação
 
