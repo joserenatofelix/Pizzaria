@@ -1,123 +1,213 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="images/favicon.png" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JRF Pizzaria - As melhores pizzas da cidade com ingredientes frescos e sabor inigualável">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <title>JRF Pizzaria - As Melhores Pizzas da Cidade</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/style.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&display=swap" as="style">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
 
-    <title>JRF - Pizzaria</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- modelos de pizza na lista e no carrinho -->
-    <div class="models">
-      <!-- pizza na lista -->
-      <div class="pizza-item">
-        <a href="">
-          <div class="pizza-item--img"><img src="" /></div>
-          <div class="pizza-item--add">+</div>
-        </a>
-        <div class="pizza-item--price">R$ --</div>
-        <div class="pizza-item--name">--</div>
-        <div class="pizza-item--desc">--</div>
-      </div>
-
-      <!-- pizza no carrinho -->
-      <div class="cart--item">
-        <img src="" />
-        <div class="cart--item-nome">--</div>
-        <div class="cart--item--qtarea">
-          <button class="cart--item-qtmenos">-</button>
-          <div class="cart--item--qt">1</div>
-          <button class="cart--item-qtmais">+</button>
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="header__container container">
+            <div class="logo">
+                <span class="logo__icon" aria-hidden="true">🍕</span>
+                <h1 class="logo__text">JRF Pizzaria</h1>
+            </div>
+            
+            <button class="cart-opener" aria-label="Abrir carrinho de compras" aria-expanded="false">
+                <span class="cart-opener__count" aria-live="polite">0</span>
+                <span class="cart-opener__icon" aria-hidden="true">🛒</span>
+            </button>
         </div>
-      </div>
-    </div>
-    <!-- /models -->
-
-    <!-- .menu-openner aparecera no modo mobile -->
-    <header>
-      <h1><i>🍕</i>JRF- Pizzaria</h1>
-      <div class="menu-openner"><span>0</span>🛒</div>
     </header>
-    <!-- /menu-openner -->
 
-    <!-- conteudo principal -->
-    <main>
-      <h2>Pizzas</h2>
+    <!-- Main Content -->
+    <main id="main-content" class="main" role="main">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero__content container">
+                <h2 id="hero-title" class="hero__title">As Melhores Pizzas da Cidade</h2>
+                <p class="hero__description">Ingredientes frescos e sabor inigualável</p>
+                <button class="btn btn--primary hero__cta">Ver Cardápio</button>
+            </div>
+        </section>
 
-      <div class="pizza-area"></div>
+        <section class="pizzas-section" aria-labelledby="pizzas-title">
+            <div class="container">
+                <h2 id="pizzas-title" class="pizzas-section__title">Nossas Pizzas</h2>
+                <div class="pizzas-grid" role="list" aria-label="Lista de pizzas disponíveis"></div>
+            </div>
+        </section>
     </main>
-    <!-- /conteudo principal -->
 
-    <!-- aside do carrinho -->
-    <aside>
-      <div class="cart--area">
-        <div class="menu-closer">❌</div>
-        <h1>Suas Pizzas</h1>
-        <div class="cart"></div>
-        <div class="cart--details">
-          <div class="cart--totalitem subtotal">
-            <span>Subtotal</span>
-            <span>R$ --</span>
-          </div>
-          <div class="cart--totalitem desconto">
-            <span>Desconto</span>
-            <span>R$ --</span>
-          </div>
-          <div class="cart--totalitem total big">
-            <span>Total</span>
-            <span>R$ --</span>
-          </div>
-          <div class="cart--finalizar">Finalizar a compra</div>
+    <!-- Shopping Cart -->
+    <aside class="cart-sidebar" role="complementary" aria-label="Carrinho de compras">
+        <div class="cart-sidebar__content">
+            <div class="cart-sidebar__header">
+                <h2 class="cart-sidebar__title">Seu Pedido</h2>
+                <button class="cart-sidebar__close" aria-label="Fechar carrinho">×</button>
+            </div>
+            
+            <div class="cart-sidebar__body">
+                <div class="cart-empty" aria-live="polite">
+                    <p class="cart-empty__message">Seu carrinho está vazio</p>
+                    <span class="cart-empty__hint">Adicione algumas pizzas deliciosas!</span>
+                </div>
+                
+                <div class="cart-items" role="list" aria-label="Itens do carrinho"></div>
+                
+                <div class="cart-summary">
+                    <div class="cart-summary__item">
+                        <span>Subtotal</span>
+                        <span data-subtotal>R$ 0,00</span>
+                    </div>
+                    <div class="cart-summary__item">
+                        <span>Desconto</span>
+                        <span data-discount>R$ 0,00</span>
+                    </div>
+                    <div class="cart-summary__item">
+                        <span>Taxa de entrega</span>
+                        <span data-delivery>R$ 5,00</span>
+                    </div>
+                    <div class="cart-summary__item cart-summary__item--total">
+                        <span>Total</span>
+                        <span data-total>R$ 0,00</span>
+                    </div>
+                    
+                    <button class="btn btn--success cart-summary__checkout" disabled>
+                        Finalizar Pedido
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
     </aside>
-    <!-- /aside do carrinho -->
 
-    <!-- janela modal .pizzaWindowArea -->
-    <div class="pizzaWindowArea">
-      <div class="pizzaWindowBody">
-        <div class="pizzaInfo--cancelMobileButton">Voltar</div>
-        <div class="pizzaBig">
-          <img src="" />
-        </div>
-        <div class="pizzaInfo">
-          <h1>--</h1>
-          <div class="pizzaInfo--desc">--</div>
-          <div class="pizzaInfo--sizearea">
-            <div class="pizzaInfo--sector">Tamanho</div>
-            <div class="pizzaInfo--sizes">
-              <div data-key="P" class="pizzaInfo--size">
-                PEQUENA <span>--</span>
-              </div>
-              <div data-key="M" class="pizzaInfo--size">
-                MÉDIA <span>--</span>
-              </div>
-              <div data-key="G" class="pizzaInfo--size selected">
-                GRANDE <span>--</span>
-              </div>
+    <!-- Pizza Modal -->
+    <div class="modal" role="dialog" aria-labelledby="pizza-modal-title" aria-modal="true" hidden>
+        <div class="modal__backdrop"></div>
+        <div class="modal__content">
+            <button class="modal__close modal__close--mobile" aria-label="Voltar">← Voltar</button>
+            
+            <div class="pizza-detail">
+                <div class="pizza-detail__image">
+                    <img src="" alt="" class="pizza-detail__img">
+                </div>
+                
+                <div class="pizza-detail__info">
+                    <h1 id="pizza-modal-title" class="pizza-detail__title">--</h1>
+                    <p class="pizza-detail__description">--</p>
+                    
+                    <fieldset class="pizza-detail__sizes">
+                        <legend class="pizza-detail__legend">Tamanho</legend>
+                        <div class="sizes-grid">
+                            <label class="size-option">
+                                <input type="radio" name="pizza-size" value="P" class="size-option__input">
+                                <span class="size-option__label">
+                                    <span class="size-option__name">PEQUENA</span>
+                                    <span class="size-option__description">--</span>
+                                </span>
+                            </label>
+                            
+                            <label class="size-option">
+                                <input type="radio" name="pizza-size" value="M" class="size-option__input">
+                                <span class="size-option__label">
+                                    <span class="size-option__name">MÉDIA</span>
+                                    <span class="size-option__description">--</span>
+                                </span>
+                            </label>
+                            
+                            <label class="size-option">
+                                <input type="radio" name="pizza-size" value="G" checked class="size-option__input">
+                                <span class="size-option__label">
+                                    <span class="size-option__name">GRANDE</span>
+                                    <span class="size-option__description">--</span>
+                                </span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    
+                    <div class="pizza-detail__price">
+                        <div class="pizza-detail__price-label">Preço</div>
+                        <div class="price-controls">
+                            <span class="price-controls__amount" data-price>R$ --</span>
+                            
+                            <div class="quantity-selector">
+                                <button class="quantity-selector__btn" data-decrease aria-label="Diminuir quantidade">-</button>
+                                <span class="quantity-selector__value" data-quantity>1</span>
+                                <button class="quantity-selector__btn" data-increase aria-label="Aumentar quantidade">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pizza-detail__actions">
+                        <button class="btn btn--primary pizza-detail__add" data-add-to-cart>
+                            Adicionar ao carrinho
+                        </button>
+                        <button class="btn btn--outline pizza-detail__cancel" data-cancel>
+                            Continuar comprando
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="pizzaInfo--pricearea">
-            <div class="pizzaInfo--sector">Preço</div>
-            <div class="pizzaInfo--price">
-              <div class="pizzaInfo--actualPrice">R$ --</div>
-              <div class="pizzaInfo--qtarea">
-                <button class="pizzaInfo--qtmenos">-</button>
-                <div class="pizzaInfo--qt">1</div>
-                <button class="pizzaInfo--qtmais">+</button>
-              </div>
-            </div>
-          </div>
-          <div class="pizzaInfo--addButton">Adicionar ao carrinho</div>
-          <div class="pizzaInfo--cancelButton">Cancelar</div>
         </div>
-      </div>
     </div>
-    <!-- /janela modal .pizzaWindowArea -->
 
-    <script src="js/pizzas.js"></script>
-    <script src="js/script.js"></script>
-  </body>
+    <!-- Templates -->
+    <template id="pizza-card-template">
+        <article class="pizza-card" role="listitem">
+            <div class="pizza-card__image">
+                <img src="" alt="" class="pizza-card__img">
+                <div class="pizza-card__overlay">
+                    <span>Ver detalhes</span>
+                </div>
+            </div>
+            
+            <button class="pizza-card__add" aria-label="Adicionar ao carrinho">+</button>
+            
+            <div class="pizza-card__content">
+                <div class="pizza-card__price" data-price>R$ --</div>
+                <h3 class="pizza-card__title">--</h3>
+                <p class="pizza-card__description">--</p>
+            </div>
+        </article>
+    </template>
+
+    <template id="cart-item-template">
+        <div class="cart-item" role="listitem">
+            <div class="cart-item__image">
+                <img src="" alt="" class="cart-item__img">
+            </div>
+            
+            <div class="cart-item__info">
+                <div class="cart-item__name">--</div>
+                <div class="cart-item__controls">
+                    <button class="cart-item__btn" data-decrease aria-label="Diminuir quantidade">-</button>
+                    <span class="cart-item__quantity" data-quantity>1</span>
+                    <button class="cart-item__btn" data-increase aria-label="Aumentar quantidade">+</button>
+                </div>
+            </div>
+            
+            <button class="cart-item__remove" aria-label="Remover item">×</button>
+        </div>
+    </template>
+
+    <!-- JavaScript -->
+    <script type="module" src="js/script.js"></script>
+</body>
 </html>

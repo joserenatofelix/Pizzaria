@@ -1,346 +1,567 @@
-// aula 05
-// criar a variável modalKey sera global
-let modalKey = 0
+// ===== CONFIGURAÇÕES E CONSTANTES =====
+const PIZZA_SIZES = {
+    P: { name: 'Pequena', slices: '6 fatias' },
+    M: { name: 'Média', slices: '8 fatias' },
+    G: { name: 'Grande', slices: '12 fatias' }
+};
 
-// variavel para controlar a quantidade inicial de pizzas na modal
-let quantPizzas = 1
+const DELIVERY_FEE = 5.00;
 
-let cart = [] // carrinho
-// /aula 05
-
-// funcoes auxiliares ou uteis
-const seleciona = (elemento) => document.querySelector(elemento)
-const selecionaTodos = (elemento) => document.querySelectorAll(elemento)
-
-const formatoReal = (valor) => {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
-
-const formatoMonetario = (valor) => {
-    if(valor) {
-        return valor.toFixed(2)
+// ===== ESTADO DA APLICAÇÃO =====
+class PizzaStore {
+    constructor() {
+        this.cart = [];
+        this.currentPizza = null;
+        this.modalQuantity = 1;
+        this.selectedSize = 'G';
+        
+        this.initializeApp();
     }
-}
 
-const abrirModal = () => {
-    seleciona('.pizzaWindowArea').style.opacity = 0 // transparente
-    seleciona('.pizzaWindowArea').style.display = 'flex'
-    setTimeout(() => seleciona('.pizzaWindowArea').style.opacity = 1, 150)
-}
+    // ===== INICIALIZAÇÃO =====
+    initializeApp() {
+        this.cacheElements();
+        this.bindEvents();
+        this.renderPizzas();
+        this.updateCart();
+    }
 
-const fecharModal = () => {
-    seleciona('.pizzaWindowArea').style.opacity = 0 // transparente
-    setTimeout(() => seleciona('.pizzaWindowArea').style.display = 'none', 500)
-}
+    // ===== CACHE DE ELEMENTOS =====
+    cacheElements() {
+        this.elements = {
+            // Templates
+            pizzaCardTemplate: document.getElementById('pizza-card-template'),
+            cartItemTemplate: document.getElementById('cart-item-template'),
+            
+            // Containers
+            pizzasGrid: document.querySelector('.pizzas-grid'),
+            cartItems: document.querySelector('.cart-items'),
+            cartSummary: document.querySelector('.cart-summary'),
+            cartEmpty: document.querySelector('.cart-empty'),
+            
+            // Botões e controles
+            cartOpener: document.querySelector('.cart-opener'),
+            cartClose: document.querySelector('.cart-sidebar__close'),
+            cartCheckout: document.querySelector('.cart-summary__checkout'),
+            heroCta: document.querySelector('.hero__cta'),
+            
+            // Modal
+            modal: document.querySelector('.modal'),
+            modalBackdrop: document.querySelector('.modal__backdrop'),
+            modalClose: document.querySelector('.modal__close'),
+            modalCloseMobile: document.querySelector('.modal__close--mobile'),
+            
+            // Elementos do modal
+            modalTitle: document.getElementById('pizza-modal-title'),
+            modalImage: document.querySelector('.pizza-detail__img'),
+            modalDescription: document.querySelector('.pizza-detail__description'),
+            modalPrice: document.querySelector('[data-price]'),
+            modalQuantity: document.querySelector('[data-quantity]'),
+            modalDecrease: document.querySelector('[data-decrease]'),
+            modalIncrease: document.querySelector('[data-increase]'),
+            modalAddToCart: document.querySelector('[data-add-to-cart]'),
+            modalCancel: document.querySelector('[data-cancel]'),
+            sizeInputs: document.querySelectorAll('.size-option__input'),
+            
+            // Elementos do carrinho
+            cartSubtotal: document.querySelector('[data-subtotal]'),
+            cartDiscount: document.querySelector('[data-discount]'),
+            cartDelivery: document.querySelector('[data-delivery]'),
+            cartTotal: document.querySelector('[data-total]'),
+            cartCount: document.querySelector('.cart-opener__count')
+        };
+    }
 
-const botoesFechar = () => {
-    // BOTOES FECHAR MODAL
-    selecionaTodos('.pizzaInfo--cancelButton, .pizzaInfo--cancelMobileButton').forEach( (item) => item.addEventListener('click', fecharModal) )
-}
-
-const preencheDadosDasPizzas = (pizzaItem, item, index) => {
-    // aula 05
-    // setar um atributo para identificar qual elemento foi clicado
-	pizzaItem.setAttribute('data-key', index)
-    pizzaItem.querySelector('.pizza-item--img img').src = item.img
-    pizzaItem.querySelector('.pizza-item--price').innerHTML = formatoReal(item.price[2])
-    pizzaItem.querySelector('.pizza-item--name').innerHTML = item.name
-    pizzaItem.querySelector('.pizza-item--desc').innerHTML = item.description
-}
-
-const preencheDadosModal = (item) => {
-    seleciona('.pizzaBig img').src = item.img
-    seleciona('.pizzaInfo h1').innerHTML = item.name
-    seleciona('.pizzaInfo--desc').innerHTML = item.description
-    seleciona('.pizzaInfo--actualPrice').innerHTML = formatoReal(item.price[2])
-}
-
-// aula 05
-const pegarKey = (e) => {
-    // .closest retorna o elemento mais proximo que tem a class que passamos
-    // do .pizza-item ele vai pegar o valor do atributo data-key
-    let key = e.target.closest('.pizza-item').getAttribute('data-key')
-    console.log('Pizza clicada ' + key)
-    console.log(pizzaJson[key])
-
-    // garantir que a quantidade inicial de pizzas é 1
-    quantPizzas = 1
-
-    // Para manter a informação de qual pizza foi clicada
-    modalKey = key
-
-    return key
-}
-
-const preencherTamanhos = (key) => {
-    // tirar a selecao de tamanho atual e selecionar o tamanho grande
-    seleciona('.pizzaInfo--size.selected').classList.remove('selected')
-
-    // selecionar todos os tamanhos
-    selecionaTodos('.pizzaInfo--size').forEach((size, sizeIndex) => {
-        // selecionar o tamanho grande
-        (sizeIndex == 2) ? size.classList.add('selected') : ''
-        size.querySelector('span').innerHTML = pizzaJson[key].sizes[sizeIndex]
-    })
-}
-
-const escolherTamanhoPreco = (key) => {
-    // Ações nos botões de tamanho
-    // selecionar todos os tamanhos
-    selecionaTodos('.pizzaInfo--size').forEach((size, sizeIndex) => {
-        size.addEventListener('click', (e) => {
-            // clicou em um item, tirar a selecao dos outros e marca o q vc clicou
-            // tirar a selecao de tamanho atual e selecionar o tamanho grande
-            seleciona('.pizzaInfo--size.selected').classList.remove('selected')
-            // marcar o que vc clicou, ao inves de usar e.target use size, pois ele é nosso item dentro do loop
-            size.classList.add('selected')
-
-            // mudar o preço de acordo com o tamanho
-            seleciona('.pizzaInfo--actualPrice').innerHTML = formatoReal(pizzaJson[key].price[sizeIndex])
-        })
-    })
-}
-
-const mudarQuantidade = () => {
-    // Ações nos botões + e - da janela modal
-    seleciona('.pizzaInfo--qtmais').addEventListener('click', () => {
-        quantPizzas++
-        seleciona('.pizzaInfo--qt').innerHTML = quantPizzas
-    })
-
-    seleciona('.pizzaInfo--qtmenos').addEventListener('click', () => {
-        if(quantPizzas > 1) {
-            quantPizzas--
-            seleciona('.pizzaInfo--qt').innerHTML = quantPizzas	
-        }
-    })
-}
-// /aula 05
-
-// aula 06
-const adicionarNoCarrinho = () => {
-    seleciona('.pizzaInfo--addButton').addEventListener('click', () => {
-        console.log('Adicionar no carrinho')
-
-        // pegar dados da janela modal atual
-    	// qual pizza? pegue o modalKey para usar pizzaJson[modalKey]
-    	console.log("Pizza " + modalKey)
-    	// tamanho
-	    let size = seleciona('.pizzaInfo--size.selected').getAttribute('data-key')
-	    console.log("Tamanho " + size)
-	    // quantidade
-    	console.log("Quant. " + quantPizzas)
-        // preco
-        let price = seleciona('.pizzaInfo--actualPrice').innerHTML.replace('R$&nbsp;', '')
-    
-        // crie um identificador que junte id e tamanho
-	    // concatene as duas informacoes separadas por um símbolo, vc escolhe
-	    let identificador = pizzaJson[modalKey].id+'t'+size
-
-        // antes de adicionar verifique se ja tem aquele codigo e tamanho
-        // para adicionarmos a quantidade
-        let key = cart.findIndex( (item) => item.identificador == identificador )
-        console.log(key)
-
-        if(key > -1) {
-            // se encontrar aumente a quantidade
-            cart[key].qt += quantPizzas
-        } else {
-            // adicionar objeto pizza no carrinho
-            let pizza = {
-                identificador,
-                id: pizzaJson[modalKey].id,
-                size, // size: size
-                qt: quantPizzas,
-                price: parseFloat(price) // price: price
+    // ===== EVENT BINDING =====
+    bindEvents() {
+        // Carrinho
+        this.elements.cartOpener.addEventListener('click', () => this.toggleCart());
+        this.elements.cartClose.addEventListener('click', () => this.closeCart());
+        this.elements.cartCheckout.addEventListener('click', () => this.checkout());
+        
+        // Modal
+        this.elements.modalBackdrop.addEventListener('click', () => this.closeModal());
+        this.elements.modalClose.addEventListener('click', () => this.closeModal());
+        this.elements.modalCloseMobile.addEventListener('click', () => this.closeModal());
+        this.elements.modalCancel.addEventListener('click', () => this.closeModal());
+        
+        // Controles de quantidade
+        this.elements.modalDecrease.addEventListener('click', () => this.decreaseQuantity());
+        this.elements.modalIncrease.addEventListener('click', () => this.increaseQuantity());
+        this.elements.modalAddToCart.addEventListener('click', () => this.addToCart());
+        
+        // Seleção de tamanho
+        this.elements.sizeInputs.forEach(input => {
+            input.addEventListener('change', (e) => this.selectSize(e.target.value));
+        });
+        
+        // CTA do hero
+        this.elements.heroCta.addEventListener('click', () => this.scrollToPizzas());
+        
+        // Fechar carrinho com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeCart();
+                this.closeModal();
             }
-            cart.push(pizza)
-            console.log(pizza)
-            console.log('Sub total R$ ' + (pizza.qt * pizza.price).toFixed(2))
-        }
-
-        fecharModal()
-        abrirCarrinho()
-        atualizarCarrinho()
-    })
-}
-
-const abrirCarrinho = () => {
-    console.log('Qtd de itens no carrinho ' + cart.length)
-    if(cart.length > 0) {
-        // mostrar o carrinho
-	    seleciona('aside').classList.add('show')
-        seleciona('header').style.display = 'flex' // mostrar barra superior
+        });
     }
 
-    // exibir aside do carrinho no modo mobile
-    seleciona('.menu-openner').addEventListener('click', () => {
-        if(cart.length > 0) {
-            seleciona('aside').classList.add('show')
-            seleciona('aside').style.left = '0'
+    // ===== RENDERIZAÇÃO DE PIZZAS =====
+    renderPizzas() {
+        this.elements.pizzasGrid.innerHTML = '';
+        
+        pizzaJson.forEach((pizza, index) => {
+            const card = this.createPizzaCard(pizza, index);
+            this.elements.pizzasGrid.appendChild(card);
+        });
+    }
+
+    createPizzaCard(pizza, index) {
+        const template = this.elements.pizzaCardTemplate.content.cloneNode(true);
+        const card = template.querySelector('.pizza-card');
+        
+        // Preencher dados
+        const img = card.querySelector('.pizza-card__img');
+        const price = card.querySelector('[data-price]');
+        const title = card.querySelector('.pizza-card__title');
+        const description = card.querySelector('.pizza-card__description');
+        const addBtn = card.querySelector('.pizza-card__add');
+        const overlay = card.querySelector('.pizza-card__overlay');
+        
+        img.src = pizza.img;
+        img.alt = `Pizza ${pizza.name}`;
+        price.textContent = this.formatPrice(pizza.price[2]); // Preço grande
+        title.textContent = pizza.name;
+        description.textContent = pizza.description;
+        
+        // Event listeners
+        const openModal = () => this.openModal(pizza, index);
+        
+        overlay.addEventListener('click', openModal);
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('.pizza-card__add')) {
+                openModal();
+            }
+        });
+        
+        addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.quickAddToCart(pizza, index);
+        });
+        
+        return card;
+    }
+
+    // ===== MODAL =====
+    openModal(pizza, index) {
+        this.currentPizza = { ...pizza, index };
+        this.modalQuantity = 1;
+        this.selectedSize = 'G';
+        
+        this.updateModalContent();
+        this.showModal();
+    }
+
+    updateModalContent() {
+        const { currentPizza } = this;
+        
+        // Atualizar informações básicas
+        this.elements.modalTitle.textContent = currentPizza.name;
+        this.elements.modalImage.src = currentPizza.img;
+        this.elements.modalImage.alt = `Pizza ${currentPizza.name}`;
+        this.elements.modalDescription.textContent = currentPizza.description;
+        
+        // Atualizar tamanhos
+        this.elements.sizeInputs.forEach((input, index) => {
+            const sizeKey = input.value;
+            const label = input.nextElementSibling;
+            const desc = label.querySelector('.size-option__description');
+            
+            desc.textContent = currentPizza.sizes[index];
+            
+            if (sizeKey === this.selectedSize) {
+                input.checked = true;
+            }
+        });
+        
+        // Atualizar preço e quantidade
+        this.updateModalPrice();
+        this.elements.modalQuantity.textContent = this.modalQuantity;
+    }
+
+    updateModalPrice() {
+        const priceIndex = this.getPriceIndex(this.selectedSize);
+        const price = this.currentPizza.price[priceIndex] * this.modalQuantity;
+        this.elements.modalPrice.textContent = this.formatPrice(price);
+    }
+
+    getPriceIndex(size) {
+        const sizes = ['P', 'M', 'G'];
+        return sizes.indexOf(size);
+    }
+
+    selectSize(size) {
+        this.selectedSize = size;
+        this.updateModalPrice();
+    }
+
+    increaseQuantity() {
+        this.modalQuantity++;
+        this.elements.modalQuantity.textContent = this.modalQuantity;
+        this.updateModalPrice();
+    }
+
+    decreaseQuantity() {
+        if (this.modalQuantity > 1) {
+            this.modalQuantity--;
+            this.elements.modalQuantity.textContent = this.modalQuantity;
+            this.updateModalPrice();
         }
-    })
+    }
+
+    showModal() {
+        this.elements.modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        
+        // Foco no primeiro elemento interativo
+        setTimeout(() => {
+            this.elements.modalClose.focus();
+        }, 100);
+    }
+
+    closeModal() {
+        this.elements.modal.hidden = true;
+        document.body.style.overflow = '';
+        this.currentPizza = null;
+    }
+
+    // ===== CARRINHO =====
+    addToCart() {
+        if (!this.currentPizza) return;
+        
+        const priceIndex = this.getPriceIndex(this.selectedSize);
+        const price = this.currentPizza.price[priceIndex];
+        const identifier = `${this.currentPizza.id}t${this.selectedSize}`;
+        
+        const existingItem = this.cart.find(item => item.identifier === identifier);
+        
+        if (existingItem) {
+            existingItem.quantity += this.modalQuantity;
+        } else {
+            this.cart.push({
+                identifier,
+                id: this.currentPizza.id,
+                size: this.selectedSize,
+                quantity: this.modalQuantity,
+                price: price
+            });
+        }
+        
+        this.updateCart();
+        this.closeModal();
+        this.showNotification('Pizza adicionada ao carrinho!');
+    }
+
+    quickAddToCart(pizza, index) {
+        const price = pizza.price[2]; // Preço grande
+        const identifier = `${pizza.id}tG`;
+        
+        const existingItem = this.cart.find(item => item.identifier === identifier);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            this.cart.push({
+                identifier,
+                id: pizza.id,
+                size: 'G',
+                quantity: 1,
+                price: price
+            });
+        }
+        
+        this.updateCart();
+        this.showNotification('Pizza adicionada ao carrinho!');
+    }
+
+    updateCart() {
+        this.renderCartItems();
+        this.updateCartSummary();
+        this.updateCartCount();
+        this.toggleCartEmptyState();
+    }
+
+    renderCartItems() {
+        this.elements.cartItems.innerHTML = '';
+        
+        this.cart.forEach((item, index) => {
+            const cartItem = this.createCartItem(item, index);
+            this.elements.cartItems.appendChild(cartItem);
+        });
+    }
+
+    createCartItem(item, index) {
+        const template = this.elements.cartItemTemplate.content.cloneNode(true);
+        const cartItem = template.querySelector('.cart-item');
+        
+        const pizza = pizzaJson.find(p => p.id === item.id);
+        const sizeName = PIZZA_SIZES[item.size].name;
+        
+        // Preencher dados
+        const img = cartItem.querySelector('.cart-item__img');
+        const name = cartItem.querySelector('.cart-item__name');
+        const quantity = cartItem.querySelector('[data-quantity]');
+        const decreaseBtn = cartItem.querySelector('[data-decrease]');
+        const increaseBtn = cartItem.querySelector('[data-increase]');
+        const removeBtn = cartItem.querySelector('.cart-item__remove');
+        
+        img.src = pizza.img;
+        img.alt = pizza.name;
+        name.textContent = `${pizza.name} (${sizeName})`;
+        quantity.textContent = item.quantity;
+        
+        // Event listeners
+        decreaseBtn.addEventListener('click', () => this.decreaseCartItem(index));
+        increaseBtn.addEventListener('click', () => this.increaseCartItem(index));
+        removeBtn.addEventListener('click', () => this.removeCartItem(index));
+        
+        return cartItem;
+    }
+
+    increaseCartItem(index) {
+        this.cart[index].quantity++;
+        this.updateCart();
+    }
+
+    decreaseCartItem(index) {
+        if (this.cart[index].quantity > 1) {
+            this.cart[index].quantity--;
+        } else {
+            this.cart.splice(index, 1);
+        }
+        this.updateCart();
+    }
+
+    removeCartItem(index) {
+        this.cart.splice(index, 1);
+        this.updateCart();
+        this.showNotification('Item removido do carrinho');
+    }
+
+    updateCartSummary() {
+        const subtotal = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const discount = 0; // Poderia implementar sistema de cupons
+        const total = subtotal - discount + DELIVERY_FEE;
+        
+        this.elements.cartSubtotal.textContent = this.formatPrice(subtotal);
+        this.elements.cartDiscount.textContent = this.formatPrice(discount);
+        this.elements.cartDelivery.textContent = this.formatPrice(DELIVERY_FEE);
+        this.elements.cartTotal.textContent = this.formatPrice(total);
+        
+        // Habilitar/desabilitar botão de finalizar
+        this.elements.cartCheckout.disabled = this.cart.length === 0;
+    }
+
+    updateCartCount() {
+        const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+        this.elements.cartCount.textContent = totalItems;
+        this.elements.cartCount.setAttribute('aria-label', `${totalItems} itens no carrinho`);
+    }
+
+    toggleCartEmptyState() {
+        const hasItems = this.cart.length > 0;
+        
+        this.elements.cartEmpty.style.display = hasItems ? 'none' : 'flex';
+        this.elements.cartItems.style.display = hasItems ? 'block' : 'none';
+        this.elements.cartSummary.style.display = hasItems ? 'block' : 'none';
+    }
+
+    toggleCart() {
+        const cartSidebar = document.querySelector('.cart-sidebar');
+        const isHidden = cartSidebar.getAttribute('aria-hidden') === 'true';
+        
+        if (isHidden && this.cart.length > 0) {
+            this.openCart();
+        } else {
+            this.closeCart();
+        }
+    }
+
+    openCart() {
+        const cartSidebar = document.querySelector('.cart-sidebar');
+        cartSidebar.setAttribute('aria-hidden', 'false');
+        this.elements.cartOpener.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeCart() {
+        const cartSidebar = document.querySelector('.cart-sidebar');
+        cartSidebar.setAttribute('aria-hidden', 'true');
+        this.elements.cartOpener.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+
+    checkout() {
+        if (this.cart.length === 0) {
+            this.showNotification('Adicione itens ao carrinho antes de finalizar');
+            return;
+        }
+        
+        const total = this.elements.cartTotal.textContent;
+        this.showNotification(`Pedido finalizado! Total: ${total}`);
+        
+        // Simular processamento
+        setTimeout(() => {
+            this.cart = [];
+            this.updateCart();
+            this.closeCart();
+        }, 2000);
+    }
+
+    // ===== UTILITÁRIOS =====
+    formatPrice(price) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(price);
+    }
+
+    showNotification(message) {
+        // Remover notificação existente
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // Criar nova notificação
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Mostrar
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Remover após 3 segundos
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    scrollToPizzas() {
+        const pizzasSection = document.querySelector('.pizzas-section');
+        pizzasSection.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
 }
 
-const fecharCarrinho = () => {
-    // fechar o carrinho com o botão X no modo mobile
-    seleciona('.menu-closer').addEventListener('click', () => {
-        seleciona('aside').style.left = '100vw' // usando 100vw ele ficara fora da tela
-        seleciona('header').style.display = 'flex'
-    })
+// ===== DADOS DAS PIZZAS =====
+const pizzaJson = [
+    {
+        id: 1,
+        name: 'Mussarela',
+        img: 'images/pizza.png',
+        price: [20.00, 23.00, 25.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, camada dupla de mussarela e orégano'
+    },
+    {
+        id: 2,
+        name: 'Calabresa',
+        img: 'images/pizza2.png',
+        price: [21.00, 24.00, 26.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, mussarela, calabresa fatiada, cebola e orégano'
+    },
+    {
+        id: 3,
+        name: 'Quatro Queijos',
+        img: 'images/pizza3.png',
+        price: [23.00, 26.00, 28.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, camadas de mussarela, provolone, parmessão, gorgonzola e orégano'
+    },
+    {
+        id: 4,
+        name: 'Brasileira',
+        img: 'images/pizza4.png',
+        price: [25.00, 28.00, 30.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, mussarela, calabresa picada, palmito, champignon, azeitonas e orégano'
+    },
+    {
+        id: 5,
+        name: 'Portuguesa',
+        img: 'images/pizza5.png',
+        price: [24.00, 27.00, 29.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, mussarela, presunto, ovos, cebolas, pimentão, azeitona e orégano'
+    },
+    {
+        id: 6,
+        name: 'Moda da Casa',
+        img: 'images/pizza6.png',
+        price: [30.00, 33.00, 35.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, mussarela, carne de sol, tomates em cubos, coentro, cebola, azeitona, catupiry e orégano'
+    },
+    {
+        id: 7,
+        name: 'Banana com canela',
+        img: 'images/pizza7.png',
+        price: [27.00, 30.00, 32.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Mussarela, banana, canela e açúcar'
+    },
+    {
+        id: 8,
+        name: 'Chocolate com morango',
+        img: 'images/pizza8.png',
+        price: [30.00, 32.00, 35.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Creme de leite, lascas de chocolate e morangos'
+    },
+    {
+        id: 9,
+        name: 'Frango com Catupiry',
+        img: 'images/pizza.png',
+        price: [26.00, 29.00, 31.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, frango desfiado, catupiry e orégano'
+    },
+    {
+        id: 10,
+        name: 'Margherita',
+        img: 'images/pizza2.png',
+        price: [22.00, 25.00, 27.00],
+        sizes: ['6 fatias', '8 fatias', '12 fatias'],
+        description: 'Molho de tomate, mussarela, tomate fresco, manjericão e azeite'
+    }
+];
+
+// ===== INICIALIZAÇÃO DA APLICAÇÃO =====
+document.addEventListener('DOMContentLoaded', () => {
+    new PizzaStore();
+});
+
+// ===== SERVICE WORKER (OPCIONAL) =====
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
 }
-
-const atualizarCarrinho = () => {
-    // exibir número de itens no carrinho
-	seleciona('.menu-openner span').innerHTML = cart.length
-	
-	// mostrar ou nao o carrinho
-	if(cart.length > 0) {
-
-		// mostrar o carrinho
-		seleciona('aside').classList.add('show')
-
-		// zerar meu .cart para nao fazer insercoes duplicadas
-		seleciona('.cart').innerHTML = ''
-
-        // crie as variaveis antes do for
-		let subtotal = 0
-		let desconto = 0
-		let total    = 0
-
-        // para preencher os itens do carrinho, calcular subtotal
-		for(let i in cart) {
-			// use o find para pegar o item por id
-			let pizzaItem = pizzaJson.find( (item) => item.id == cart[i].id )
-			console.log(pizzaItem)
-
-            // em cada item pegar o subtotal
-        	subtotal += cart[i].price * cart[i].qt
-            //console.log(cart[i].price)
-
-			// fazer o clone, exibir na telas e depois preencher as informacoes
-			let cartItem = seleciona('.models .cart--item').cloneNode(true)
-			seleciona('.cart').append(cartItem)
-
-			let pizzaSizeName = cart[i].size
-
-			let pizzaName = `${pizzaItem.name} (${pizzaSizeName})`
-
-			// preencher as informacoes
-			cartItem.querySelector('img').src = pizzaItem.img
-			cartItem.querySelector('.cart--item-nome').innerHTML = pizzaName
-			cartItem.querySelector('.cart--item--qt').innerHTML = cart[i].qt
-
-			// selecionar botoes + e -
-			cartItem.querySelector('.cart--item-qtmais').addEventListener('click', () => {
-				console.log('Clicou no botão mais')
-				// adicionar apenas a quantidade que esta neste contexto
-				cart[i].qt++
-				// atualizar a quantidade
-				atualizarCarrinho()
-			})
-
-			cartItem.querySelector('.cart--item-qtmenos').addEventListener('click', () => {
-				console.log('Clicou no botão menos')
-				if(cart[i].qt > 1) {
-					// subtrair apenas a quantidade que esta neste contexto
-					cart[i].qt--
-				} else {
-					// remover se for zero
-					cart.splice(i, 1)
-				}
-
-                (cart.length < 1) ? seleciona('header').style.display = 'flex' : ''
-
-				// atualizar a quantidade
-				atualizarCarrinho()
-			})
-
-			seleciona('.cart').append(cartItem)
-
-		} // fim do for
-
-		// fora do for
-		// calcule desconto 10% e total
-		//desconto = subtotal * 0.1
-		desconto = subtotal * 0
-		total = subtotal - desconto
-
-		// exibir na tela os resultados
-		// selecionar o ultimo span do elemento
-		seleciona('.subtotal span:last-child').innerHTML = formatoReal(subtotal)
-		seleciona('.desconto span:last-child').innerHTML = formatoReal(desconto)
-		seleciona('.total span:last-child').innerHTML    = formatoReal(total)
-
-	} else {
-		// ocultar o carrinho
-		seleciona('aside').classList.remove('show')
-		seleciona('aside').style.left = '100vw'
-	}
-}
-
-const finalizarCompra = () => {
-    seleciona('.cart--finalizar').addEventListener('click', () => {
-        console.log('Finalizar compra')
-        seleciona('aside').classList.remove('show')
-        seleciona('aside').style.left = '100vw'
-        seleciona('header').style.display = 'flex'
-    })
-}
-
-// /aula 06
-
-// MAPEAR pizzaJson para gerar lista de pizzas
-pizzaJson.map((item, index ) => {
-    //console.log(item)
-    let pizzaItem = document.querySelector('.models .pizza-item').cloneNode(true)
-    //console.log(pizzaItem)
-    //document.querySelector('.pizza-area').append(pizzaItem)
-    seleciona('.pizza-area').append(pizzaItem)
-
-    // preencher os dados de cada pizza
-    preencheDadosDasPizzas(pizzaItem, item, index)
-    
-    // pizza clicada
-    pizzaItem.querySelector('.pizza-item a').addEventListener('click', (e) => {
-        e.preventDefault()
-        console.log('Clicou na pizza')
-
-        // aula 05
-        let chave = pegarKey(e)
-        // /aula 05
-
-        // abrir janela modal
-        abrirModal()
-
-        // preenchimento dos dados
-        preencheDadosModal(item)
-
-        // aula 05
-        // pegar tamanho selecionado
-        preencherTamanhos(chave)
-
-		// definir quantidade inicial como 1
-		seleciona('.pizzaInfo--qt').innerHTML = quantPizzas
-
-        // selecionar o tamanho e preco com o clique no botao
-        escolherTamanhoPreco(chave)
-        // /aula 05
-
-    })
-
-    botoesFechar()
-
-}) // fim do MAPEAR pizzaJson para gerar lista de pizzas
-
-// aula 05
-// mudar quantidade com os botoes + e -
-mudarQuantidade()
-// /aula 05
-
-// aula 06
-adicionarNoCarrinho()
-atualizarCarrinho()
-fecharCarrinho()
-finalizarCompra()
-// /aula 06
